@@ -8,22 +8,25 @@ from django.urls import reverse_lazy
 
 class PostListView(ListView):
     model = Post
+    context_object_name = 'posts'
     ordering =['-created_at']
     paginate_by = 10
-    template_name = "post_list.html"
+    template_name = "blog/post_list.html"
 
 
 class PostDetailView(DetailView):
     model = Post
-    template_name = "post_detail.html"
+    template_name = "blog/post_detail.html"
+
+    def get_object(self):
+        return Post.objects.get(pk=self.request.user.pk)
 
 
 class PostCreateView(CreateView):
     model = Post
     form_class = PostCreateForm
-    fields = ("title", "text", "publish", "limited_publish",)
     success_url = reverse_lazy('post_detail')
-    template_name = "post_create.html"
+    template_name = "blog/post_create.html"
 
     def form_valid(self, form):
         messages.success(self.request, "保存しました")
@@ -38,9 +41,8 @@ class PostCreateView(CreateView):
 class PostUpdateView(UpdateView):
     model = Post
     form_class = PostCreateForm
-    fields = ("title", "text", "publish", "limited_publish",)
-    success_url = reverse_lazy('post_detail')
-    template_name = "post_update.html"
+    success_url = reverse_lazy('post_list')
+    template_name = "blog/post_update.html"
 
     def form_valid(self, form):
         messages.success(self.request, "保存しました")
@@ -54,5 +56,5 @@ class PostUpdateView(UpdateView):
 
 class PostDeleteView(DeleteView):
     model = Post
-    success_url = reverse_lazy('post_list')
+    success_url = reverse_lazy('post_detail')
     template_name = "post_delete.html"
