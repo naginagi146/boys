@@ -54,6 +54,7 @@ class PostUpdateView(UpdateView):
         return super().form_invalid(form)
 
 
+
 class PostDeleteView(DeleteView):
     model = Post
     success_url = reverse_lazy('post_detail')
