@@ -1,7 +1,9 @@
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post
-from .forms import PostCreateForm
+from .models import Post, Comment
+from .forms import PostCreateForm, CommentCreateForm
 from django.contrib import messages
 from django.urls import reverse_lazy
 
@@ -18,14 +20,12 @@ class PostDetailView(DetailView):
     model = Post
     template_name = "blog/post_detail.html"
 
-    def get_object(self):
-        return Post.objects.get(pk=self.request.user.pk)
 
 
-class PostCreateView(CreateView):
+class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostCreateForm
-    success_url = reverse_lazy('post_detail')
+    success_url = reverse_lazy('post_list')
     template_name = "blog/post_create.html"
 
     def form_valid(self, form):
@@ -38,7 +38,7 @@ class PostCreateView(CreateView):
         return super().form_invalid(form)
 
 
-class PostUpdateView(UpdateView):
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Post
     form_class = PostCreateForm
     success_url = reverse_lazy('post_list')
@@ -53,9 +53,49 @@ class PostUpdateView(UpdateView):
         messages.warning(self.request, "保存できませんでした")
         return super().form_invalid(form)
 
+    def test_func(self):
+        post =self.get_object()
+        if self.request.user == post.auther:
+            return True
+        return False
 
 
-class PostDeleteView(DeleteView):
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Post
-    success_url = reverse_lazy('post_detail')
-    template_name = "post_delete.html"
+    success_url = '/'
+    template_name = "blog/post_delete.html"
+
+    def test_func(self):
+        post =self.get_object()
+        if self.request.user == post.auther:
+            return True
+        return False
+
+class PostDraftListView(ListView):
+    model = Post
+    context_object_name = 'drafts'
+    paginate_by = 10
+    template_name = "blog/post_draft.html"
+
+    def get_queryset(self):
+        return Post.objects.filter(publish=False)
+
+
+
+class CommentCreateView(CreateView):
+    model = Comment
+    form_class = CommentCreateForm
+    success_url = reverse_lazy('post_list')
+    template_name = "blog/comment_create.html"
+
+    def form_valid(self, form):
+        post_pk = self.kwargs['pk']
+        post = get_object_or_404(Post, pk=post_pk)
+        comment = form.save(commit=False)
+        comment.target = post
+        comment.save()
+        return redirect('blog/post_detail', pk=post_pk)
+
+
+
+
