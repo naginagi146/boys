@@ -1,9 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post, Comment
-from .forms import PostCreateForm, CommentCreateForm
+from .models import Post, Comment,Image
+from .forms import PostCreateForm, CommentCreateForm, ImageForm
 from django.contrib import messages
 from django.urls import reverse_lazy
 
@@ -14,6 +15,13 @@ class PostListView(ListView):
     ordering =['-created_at']
     paginate_by = 10
     template_name = "blog/post_list.html"
+
+    def get_queryset(self):
+        queryset = Post.objects.all()
+        if 'query' in self.request.GET:
+            qs = self.request.GET['query']
+            queryset =queryset.filter(name__contains=qs)
+        return queryset
 
 
 class PostDetailView(DetailView):
@@ -27,6 +35,13 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     form_class = PostCreateForm
     success_url = reverse_lazy('post_list')
     template_name = "blog/post_create.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'image_form': ImageForm(**self.get_form_kwargs()),
+        })
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "保存しました")
@@ -85,7 +100,7 @@ class PostDraftListView(ListView):
 class CommentCreateView(CreateView):
     model = Comment
     form_class = CommentCreateForm
-    success_url = reverse_lazy('post_list')
+    success_url = reverse_lazy('post_detail')
     template_name = "blog/comment_create.html"
 
     def form_valid(self, form):
@@ -94,8 +109,19 @@ class CommentCreateView(CreateView):
         comment = form.save(commit=False)
         comment.target = post
         comment.save()
-        return redirect('blog/post_detail', pk=post_pk)
+        return super().form_valid(form)
 
 
 
+@login_required
+def comment_approve(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    comment.approve()
+    return redirect('blog/post_detail', pk=comment.post.pk)
 
+
+@login_required
+def comment_remove(request, pk):
+    comment = get_object_or_404(Comment, pk=pk)
+    comment.delete()
+    return redirect('blog/post_detail', pk=comment.post.pk)
