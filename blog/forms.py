@@ -14,7 +14,6 @@ class CommentCreateForm(forms.ModelForm):
         model = Comment
         fields = ('author', 'text',)
 
-
 class ImageForm(forms.ModelForm):
 
     class Meta:

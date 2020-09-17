@@ -14,6 +14,9 @@
         <h2>{{ post.title }}</h2>
         <p>{{ post.text|linebreaksbr }}</p>
     </div>
+    <div class="src">
+        <img src="/{{ MEDIA_URL }}{{ image.src }}" style="width: 300px;height: auto;"/>
+    </div>
     <hr>
     <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">コメントを追加する</a>
 {% for comment in post.comments.all %}
