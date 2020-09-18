@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post, Comment,Image
+from .models import Post, Comment, Image
 from .forms import PostCreateForm, CommentCreateForm, ImageForm
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -28,20 +28,26 @@ class PostDetailView(DetailView):
     model = Post
     template_name = "blog/post_detail.html"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({'image':Image.objects.all()})
+        return context
+
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostCreateForm
+    form_class2 =ImageForm
     success_url = reverse_lazy('post_list')
     template_name = "blog/post_create.html"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'image_form': ImageForm(**self.get_form_kwargs()),
-        })
+        context= CreateView.get_context_data(self, **kwargs)
+        form2 = self.form_class2(self.request.GET)
+        context.update({'form2':form2})
         return context
+
 
     def form_valid(self, form):
         messages.success(self.request, "保存しました")
@@ -97,7 +103,7 @@ class PostDraftListView(ListView):
 
 
 
-class CommentCreateView(CreateView):
+class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentCreateForm
     success_url = reverse_lazy('post_detail')
