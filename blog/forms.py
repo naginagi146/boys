@@ -21,6 +21,16 @@ class ImageForm(forms.ModelForm):
         fields = ("src",)
         extra=5
 
+class CommentUpdateForm(forms.ModelForm):
+
+
+    class Meta:
+        model = Comment
+        fields = ('approved_comment',)
+
+
+
+
 
 # ImageFormset = forms.inlineformset_factory(
 #     Possrct,Image, fields= (('__all__')),

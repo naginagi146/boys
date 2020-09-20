@@ -1,0 +1,12 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+    <div class="post">
+        {% if comment.created_at %}
+            <div class="date">
+                {{ post.created_at }}
+            </div>
+            {% endif %}
+        <h2>{{ comment.author }}</h2>
+        <p>{{ comment.text|linebreaksbr }}</p>
+{% endblock %}

@@ -3,12 +3,24 @@
 
 {% block content %}
         {% for comment in comments %}
+        {% if user.is_authenticated %}
+        <a class="btn btn-default" href="{% url 'comment_update' pk=comment.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
         <div class="comment">
             <p>created: {{ comment.created_at }}</p>
-            <h2>{{ comment.author }}</a></h2>
+             <h2><a href="{% url 'comment_detail' pk=comment.pk %}">{{ comment.author }}</a></h2>
             <p>{{ comment.text|linebreaksbr }}</p>
-            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a>
-
         </div>
+        {% endif %}
+        {% if not user.is_authenticated %}
+        {% if comment.approved_comment %}
+        <a class="btn btn-default" href="{% url 'comment_update' pk=comment.pk %}"><span class="glyphicon glyphicon-pencil"></span></a>
+        <div class="comment">
+            <p>created: {{ comment.created_at }}</p>
+             <h2><a href="{% url 'comment_detail' pk=comment.pk %}">{{ comment.author }}</a></h2>
+            <p>{{ comment.text|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+        {% endif %}
+
         {% endfor %}
 {% endblock %}
