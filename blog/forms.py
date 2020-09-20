@@ -15,7 +15,9 @@ class CommentCreateForm(forms.ModelForm):
         fields = ('author', 'text',)
 
 class ImageForm(forms.ModelForm):
-
+    src = forms.ImageField(
+        widget=forms.ClearableFileInput(attrs={'multiple': True}),
+    )
     class Meta:
         model = Image
         fields = ("src",)

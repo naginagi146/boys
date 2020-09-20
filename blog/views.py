@@ -34,7 +34,7 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({'images':Image.objects.all()})
+        context.update({'images':Image.objects.get()})
         return context
 
 
