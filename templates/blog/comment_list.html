@@ -1,0 +1,14 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block content %}
+        {% for comment in comments %}
+        <div class="comment">
+            <p>created: {{ comment.created_at }}</p>
+            <h2>{{ comment.author }}</a></h2>
+            <p>{{ comment.text|linebreaksbr }}</p>
+            <a href="{% url 'post_detail' pk=post.pk %}">Comments: {{ post.approved_comments.count }}</a>
+
+        </div>
+        {% endfor %}
+{% endblock %}
