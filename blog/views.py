@@ -4,11 +4,15 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post, Comment, Image
-from .forms import PostCreateForm, CommentCreateForm, ImageForm, CommentUpdateForm
+from .models import Post, Comment
+from .forms import PostCreateForm, CommentCreateForm, CommentUpdateForm
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
+from django.db import transaction
+
+
 
 
 
@@ -34,7 +38,8 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({'images':Image.objects.get()})
+        # data_list = Image.objects.filter(src=self.request.src, id=self.kwargs['pk'])
+        context['images'] = Image.objects.all()
         return context
 
 
@@ -52,15 +57,32 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         context.update({'form2':form2})
         return context
 
-
     def form_valid(self, form):
-        messages.success(self.request, "保存しました")
-        return super().form_valid(form)
+        form2 = self.form_class2(self.request.POST)
+
+        if form2.is_valid():
+            with transaction.atomic():
+                form.save()
+                form2.save()
+        else:
+            self.form_invalid(form)
+
+            return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+       return reverse_lazy('post_list')
 
 
-    def form_invalid(self, form):
-        messages.warning(self.request, "保存できませんでした")
-        return super().form_invalid(form)
+
+    # def form_valid(self, form):
+    #     messages.success(self.request, "保存しました")
+    #     self.object = form.save()
+    #     return super().form_valid(form)
+
+
+    # def form_invalid(self, form):
+    #     messages.warning(self.request, "保存できませんでした")
+    #     return super().form_invalid(form)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
