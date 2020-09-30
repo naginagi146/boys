@@ -5,9 +5,11 @@ from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from .models import Post, Comment, Image
-from .forms import PostCreateForm, CommentCreateForm, ImageForm
+from .forms import PostCreateForm, CommentCreateForm, ImageForm, CommentUpdateForm
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
+from django.contrib.auth.models import User
+
 
 
 class PostListView(ListView):
@@ -19,9 +21,10 @@ class PostListView(ListView):
 
     def get_queryset(self):
         queryset = Post.objects.all()
+        # print('title', queryset.last().title)
         if 'query' in self.request.GET:
             qs = self.request.GET['query']
-            queryset =queryset.filter(name__contains=qs)
+            queryset =queryset.filter(title__contains=qs)
         return queryset
 
 
@@ -31,7 +34,7 @@ class PostDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context.update({'image':Image.objects.all()})
+        context.update({'images':Image.objects.get()})
         return context
 
 
@@ -126,6 +129,32 @@ class CommentListView(ListView):
     template_name = "blog/comment_list.html"
 
 
+class CommentDetailView(DetailView):
+    model = Comment
+    template_name = "blog/comment_detail.html"
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Comment
+    form_class = CommentUpdateForm
+    template_name = "blog/comment_update.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "保存しました")
+        return super().form_valid(form)
+
+
+    def form_invalid(self, form):
+        messages.warning(self.request, "保存できませんでした")
+        return super().form_invalid(form)
+
+    def test_func(self):
+        post =self.get_object()
+        current_user = self.request.user
+        return current_user.pk == self.kwargs['pk'] or current_user.is_superuser
+
+    def get_success_url(self):
+        return reverse_lazy('comment_list', kwargs={'pk': self.object.pk})
 
 # @login_required
 # def comment_approve(request, pk):

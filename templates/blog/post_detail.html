@@ -14,9 +14,11 @@
         <h2>{{ post.title }}</h2>
         <p>{{ post.text|linebreaksbr }}</p>
     </div>
+{% for image  in images %}
     <div class="src">
-        <img src="{{ object.src.url }}" style="width: 300px;height: auto;"/>
+        <img src="{{ image.src.url }}" style="width: 300px;height: auto;"/>
     </div>
+{% endfor %}
     <hr>
     <a class="btn btn-default" href="{% url 'add_comment_to_post' pk=post.pk %}">コメントを追加する</a>
     <a class="btn btn-default" href="{% url 'comment_list' pk=post.pk  %}">コメント一覧</a>
