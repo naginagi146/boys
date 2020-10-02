@@ -12,7 +12,6 @@ class Post(models.Model):
     # publish = models.IntegerField
     publish = models.BooleanField(default=True)
     limited_publish = models.BooleanField(default=False)
-    src = models.ImageField('添付画像', upload_to='media', blank=True, null=True)
 
     def approved_comments(self):
         return self.comments.filter(approved_comment=True)
@@ -38,10 +37,10 @@ class Comment(models.Model):
 
 
 
-# class Image(models.Model):
-#     src = models.ImageField('添付画像', upload_to='media', blank=True)
-#     target = models.ForeignKey(
-#         Post, verbose_name='image',
-#         blank=True, null=True,
-#         on_delete=models.CASCADE
-#     )
+class Image(models.Model):
+    src = models.ImageField('添付画像', upload_to='media/', blank=True)
+    target = models.ForeignKey(
+        Post, verbose_name='image',
+        blank=True, null=True,
+        on_delete=models.CASCADE
+    )

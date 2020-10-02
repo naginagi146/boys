@@ -4,7 +4,7 @@
     <h2>New post</h2>
     <form method="POST" class="PostCreateForm"　enctype="multipart/form-data">{% csrf_token %}
         {{ form.as_p }}
-        {{form2}}
+        {{ form2.as_p }}
         <button type="submit" class="save btn btn-default">Save</button>
     </form>
 {% endblock %}

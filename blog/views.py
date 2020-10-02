@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, get_object_or_404
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from .models import Post, Comment
-from .forms import PostCreateForm, CommentCreateForm, CommentUpdateForm
+from .models import Post, Comment, Image
+from .forms import PostCreateForm, CommentCreateForm, ImageForm, CommentUpdateForm
 from django.contrib import messages
 from django.urls import reverse_lazy, reverse
 from django.contrib.auth.models import User
@@ -57,27 +57,22 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         context.update({'form2':form2})
         return context
 
+
     def form_valid(self, form):
-        form2 = self.form_class2(self.request.POST)
+        form2 = self.form_class2(self.request.POST or None)
 
         if form2.is_valid():
             with transaction.atomic():
                 form.save()
                 form2.save()
+            messages.success(self.request, "保存しました")
+
+            return self.form_valid(form2)
+
         else:
             self.form_invalid(form)
 
-            return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_url(self):
-       return reverse_lazy('post_list')
-
-
-
-    # def form_valid(self, form):
-    #     messages.success(self.request, "保存しました")
-    #     self.object = form.save()
-    #     return super().form_valid(form)
+        return super().form_valid(form)
 
 
     # def form_invalid(self, form):
